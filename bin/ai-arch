@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Claude Code in Architect mode: may audit and write specs under .ai/, may not edit project code.
+export AI_KIT_ARCHITECT=1
+exec claude "$@"

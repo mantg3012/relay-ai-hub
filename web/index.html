@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Relay — Claude reviews, Gemini and OpenCode build</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#/" aria-label="Relay home">
+      <svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><circle cx="4" cy="11" r="3" fill="var(--claude)"/><circle cx="11" cy="11" r="3" fill="var(--gemini)"/><circle cx="18" cy="11" r="3" fill="var(--opencode)"/></svg>
+      <span>Relay</span>
+    </a>
+    <nav class="topnav">
+      <a href="#/new" class="btn primary">New task</a>
+      <a href="#/settings" class="btn ghost">Settings</a>
+    </nav>
+  </header>
+
+  <div class="layout">
+    <aside class="rail" aria-label="Tasks">
+      <div class="rail-head">
+        <label class="sr-only" for="repoFilter">Repository</label>
+        <select id="repoFilter"></select>
+      </div>
+      <ul id="taskList" class="task-list"></ul>
+      <div id="railEmpty" class="rail-empty" hidden>No tasks in this view yet.</div>
+    </aside>
+    <main id="view" class="view" tabindex="-1"></main>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+  <dialog id="confirm">
+    <form method="dialog">
+      <h3 id="confirmTitle"></h3>
+      <p id="confirmBody"></p>
+      <div class="row end"><button value="cancel" class="btn ghost">Keep it</button><button value="ok" id="confirmOk" class="btn danger">Confirm</button></div>
+    </form>
+  </dialog>
+  <script src="/app.js"></script>
+</body>
+</html>
