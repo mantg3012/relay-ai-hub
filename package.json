@@ -1,0 +1,10 @@
+{
+  "name": "ai-relay",
+  "version": "2.0.0",
+  "description": "Claude Code audits and reviews, Gemini CLI / OpenCode implement. CLI + localhost dashboard.",
+  "license": "MIT",
+  "private": true,
+  "engines": { "node": ">=18" },
+  "bin": { "ai-task": "bin/ai-task", "ai-arch": "bin/ai-arch" },
+  "scripts": { "test": "bash test/e2e.sh" }
+}

@@ -1,0 +1,27 @@
+#!/usr/bin/env node
+// Fake Claude Code: emits stream-json like `claude -p --output-format stream-json --verbose`
+const args = process.argv.slice(2);
+if (args[0] === '--version') { console.log('0.0.0-fake'); process.exit(0); }
+const ri = args.indexOf('--resume'); const sid = ri >= 0 ? args[ri + 1] : 'cl-' + Math.random().toString(36).slice(2, 8);
+let input = ''; process.stdin.on('data', (d) => (input += d)); process.stdin.on('end', () => {
+  const out = (o) => process.stdout.write(JSON.stringify(o) + '\n');
+  out({ type: 'system', subtype: 'init', session_id: sid, model: 'fake-claude' });
+  out({ type: 'assistant', message: { content: [{ type: 'tool_use', name: 'Read', input: { file_path: 'src/add.sh' } }] } });
+  let result;
+  if (/ROLE: Software Architect\b/.test(input) && !/requirements conversation/.test(input) || /We are done discussing/.test(input)) {
+    result = '# Spec: add function\n## 1. Audit findings\nNothing yet.\n## 3. Scope\n```allowed-files\nsrc/*\ntests/test_add.sh\n```\n## 5. Acceptance criteria\n- AC-1: add 2 3 prints 5\n';
+  } else if (/ROLE: Code Reviewer & Selector/.test(input)) {
+    const [pa, pb = ''] = input.split('## CANDIDATE B —'); const aPart = pa.split('## CANDIDATE A —')[1] || ''; const aPass = /gate result: PASS/.test(aPart); const bPass = /gate result: PASS/.test(pb);
+    const w = aPass || !bPass ? 'A' : 'B'; const pass = w === 'A' ? aPass : bPass;
+    result = `# Selection\nPicked ${w}.\n\nWINNER: ${w}\n\n# Review of the winner\n${pass ? 'None' : '- **[BLOCKER] gate failed** — fix it'}\n\nVERDICT: ${pass ? 'APPROVE' : 'REQUEST_CHANGES'}`;
+  } else if (/ROLE: Code Reviewer/.test(input)) {
+    const pass = /Deterministic gate result: PASS/.test(input);
+    result = `# Review\n${pass ? 'None' : '- **[BLOCKER] gate failed** — fix it\n- **[MAJOR] tests** — add'}\n\nVERDICT: ${pass ? 'APPROVE' : 'REQUEST_CHANGES'}`;
+  } else if (/requirements conversation/.test(input)) {
+    result = 'I read src/. Question 1: should negatives be supported? (recommended: yes)';
+  } else {
+    result = 'Got it — negatives supported. Ready to write the spec when you are.';
+  }
+  out({ type: 'assistant', message: { content: [{ type: 'text', text: result }] } });
+  setTimeout(() => { out({ type: 'result', subtype: 'success', is_error: false, result, session_id: sid, total_cost_usd: 0.0123, usage: { input_tokens: 1200, output_tokens: 300, cache_read_input_tokens: 5000 } }); }, Number(process.env.FAKE_CLAUDE_MS || 50));
+});

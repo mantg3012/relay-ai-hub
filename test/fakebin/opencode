@@ -1,0 +1,18 @@
+#!/usr/bin/env node
+// Fake OpenCode (opencode.ai): `opencode run --format json -f file msg` → NDJSON events. FAKE_OPENCODE=good|bad
+const fs = require('fs');
+const args = process.argv.slice(2);
+if (args[0] === '--version') { console.log('0.0.0-fake'); process.exit(0); }
+if (args[0] === 'run' && args.includes('--help')) { console.log('--format  json'); process.exit(0); }
+const si = args.indexOf('--session'); const sid = si >= 0 ? args[si + 1] : 'ses_' + Math.random().toString(36).slice(2, 8);
+const out = (o) => process.stdout.write(JSON.stringify(o) + '\n');
+console.log('Performing one time database migration...');
+const input = fs.readFileSync(args[args.indexOf('-f') + 1], 'utf8');
+if (!process.env.OPENCODE_CONFIG && !args.includes('--dangerously-skip-permissions')) { console.error('expected safe config'); process.exit(3); }
+out({ type: 'step_start', sessionID: sid, part: { type: 'step-start' } });
+fs.mkdirSync('src', { recursive: true });
+if ((process.env.FAKE_OPENCODE || 'good') === 'bad') fs.writeFileSync('src/add.sh', 'echo 0\n');
+else { fs.writeFileSync('src/add.sh', 'echo $(( $1 + $2 ))\n'); fs.writeFileSync('tests/test_add.sh', '[ "$(bash src/add.sh 2 3)" = 5 ]\n'); }
+out({ type: 'tool_use', sessionID: sid, part: { tool: 'edit', state: { status: 'completed', input: { filePath: 'src/add.sh' } } } });
+out({ type: 'text', sessionID: sid, part: { type: 'text', text: 'Done: implemented add with tests.' } });
+out({ type: 'step_finish', sessionID: sid, part: { tokens: { input: 7000, output: 800, reasoning: 100, cache: { read: 2000, write: 0 } }, cost: 0.004 } });
