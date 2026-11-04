@@ -18,7 +18,7 @@ function promptPath(name) {
 
 const DEFAULT_CONFIG = {
   maxRounds: 3,
-  outputLanguage: 'Vietnamese',
+  outputLanguage: 'English',
   mode: 'single',               // single | fallback | best-of-2
   implementer: 'gemini',        // gemini | opencode
   secondary: 'opencode',        // used by fallback and best-of-2

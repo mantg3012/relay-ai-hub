@@ -1,20 +1,24 @@
 ---
-description: Audit codebase, viết spec chi tiết rồi giao Gemini hoặc OpenCode implement
-argument-hint: <mô tả yêu cầu>
+description: Audit the codebase and write a spec for Gemini CLI or OpenCode
+argument-hint: <describe the change>
 ---
-Bạn là ARCHITECT + AUDITOR. Bạn KHÔNG tự sửa code của dự án. Một AI khác (Gemini CLI hoặc OpenCode) sẽ
-implement từ spec của bạn mà không thấy cuộc hội thoại này, rồi bạn sẽ review lại diff của nó.
+You are the software architect and auditor. Leave code changes to Gemini CLI or OpenCode.
+The implementer receives your spec without this conversation. You will review its diff.
 
-Yêu cầu của người dùng: $ARGUMENTS
+User request
 
-Hãy làm theo thứ tự:
-1. Audit: đọc các file liên quan, quy ước code, framework test, rủi ro. Nếu yêu cầu còn mơ hồ ở
-   điểm quan trọng, hỏi tôi tối đa 3 câu ngắn trước khi viết spec.
-2. Đọc định dạng spec từ `~/.ai-kit/prompts/architect.md` nếu có, nếu không dùng
-   `~/.ai-kit/app/prompts/architect.md`. Nếu đặt `AI_KIT_HOME`, dùng thư mục đó thay cho
-   `~/.ai-kit`. Viết spec bằng tiếng Việt và giữ nguyên tên khối ```allowed-files.
-3. Lưu spec vào `.ai/specs/<slug-ngắn>.md` (tạo thư mục nếu chưa có).
-4. Tóm tắt spec cho tôi trong 5–8 dòng: phạm vi file, các AC, rủi ro chính.
-5. Kết thúc bằng đúng lệnh tôi cần chạy trong terminal (KHÔNG tự chạy nó, vì nó chạy lâu). Hoặc nhắc tôi có thể dán spec vào dashboard (`ai-task ui`):
+$ARGUMENTS
 
-   ai-task run --spec .ai/specs/<slug-ngắn>.md "<tiêu đề ngắn>"
+1. Read the relevant files and identify coding conventions, test frameworks, and risks.
+   If a material requirement is unclear, ask up to three short questions before drafting.
+2. Use the spec format in `~/.ai-kit/prompts/architect.md` if present. Otherwise use
+   `~/.ai-kit/app/prompts/architect.md`. If `AI_KIT_HOME` is set, use it in place of
+   `~/.ai-kit`. Write the spec in English and keep the fenced block named `allowed-files`.
+3. Save the spec to `.ai/specs/<short-slug>.md`. Create the directory if needed.
+4. Summarize the file scope, acceptance criteria, and main risks in five to eight lines.
+5. End with the terminal command, using the saved spec path and its title. Leave execution
+   to the user. They can also paste the spec into the dashboard opened by `ai-task ui`.
+
+   ```bash
+   ai-task run --spec .ai/specs/example-change.md "Example change"
+   ```

@@ -1,17 +1,20 @@
 # Relay AI Hub
 
-Claude Code **audit, viết spec và review**. **Gemini CLI** và/hoặc **OpenCode** **implement**, mỗi task trong một
-git worktree riêng. Lint/typecheck/test và scope check (chặn sửa file ngoài phạm vi, chặn sửa test có sẵn) quyết định
-cùng review của Claude. Bạn duyệt spec và merge. Dùng qua **giao diện web localhost (tiếng Anh)** hoặc terminal.
+Relay coordinates AI coding tasks from a local web dashboard or the terminal. Claude Code
+audits the repository, writes the specification, and reviews the diff. Gemini CLI or
+OpenCode implements the change in an isolated Git worktree. Relay runs the configured
+checks and verifies the file scope. You can approve the spec before implementation and
+squash-merge the approved change into your current branch.
 
-## Yêu cầu
+## Requirements
 
-- Node.js 18+, Git và Bash. Relay dùng thư viện chuẩn của Node.js.
-- [Claude Code](https://docs.claude.com/en/docs/claude-code/overview) (`claude`), đã đăng nhập
-- Ít nhất một implementer: Gemini CLI (`npm i -g @google/gemini-cli`) và/hoặc OpenCode của opencode.ai (`npm i -g opencode-ai`)
-- macOS, Linux hoặc Windows qua WSL
+- macOS, Linux, or Windows with WSL
+- Node.js 18+, Git, and Bash for Relay
+- Claude Code (`claude`), installed and authenticated. [Claude Code quickstart](https://code.claude.com/docs/en/quickstart)
+- At least one configured implementer. Gemini CLI (`gemini`) calls for Node.js 20+.
+  [Gemini CLI installation](https://geminicli.com/docs/get-started/installation/), [OpenCode installation and configuration](https://opencode.ai/docs/)
 
-## Cài đặt
+## Install
 
 ```bash
 git clone https://github.com/mantg3012/relay-ai-hub.git
@@ -21,73 +24,100 @@ export PATH="$HOME/.local/bin:$PATH"
 ai-task doctor
 ```
 
-Bộ cài đặt ứng dụng ở `~/.ai-kit/app`, tạo lệnh `ai-task` và `ai-arch` trong `~/.local/bin`,
-đồng thời đăng ký hook Architect và lệnh `/delegate` cho Claude Code. Thêm dòng `export` vào
-`~/.zshrc` hoặc `~/.bashrc` nếu muốn lưu PATH cho các phiên terminal sau.
+The installer copies Relay to `~/.ai-kit/app`, links `ai-task` and `ai-arch` in
+`~/.local/bin`, and registers the Architect hook and `/delegate` command in Claude Code.
+To keep the PATH change in new terminal sessions, add the export line to `~/.zshrc` or
+`~/.bashrc`.
 
-Nếu bạn đang dùng v1, `install.sh` tự nâng cấp: thay hook cũ, chuyển `defaults.env` sang `config.json`,
-và chỉ giữ những prompt v1 bạn đã tự sửa (các prompt chưa sửa sẽ dùng bản v2).
+When upgrading from Relay v1, the installer replaces the old hook and migrates
+`defaults.env` if `config.json` is absent. Customized prompts take precedence over the
+bundled prompts.
 
-## Dùng hằng ngày
+## Run a task
+
+From the Git repository you want to work on, launch the dashboard. Relay adds the
+current repository automatically.
 
 ```bash
 cd ~/code/my-repo
-ai-task ui            # mở dashboard; repo hiện tại được thêm tự động
+ai-task ui
 ```
 
-Trên dashboard: **New task** → mô tả yêu cầu → chọn cách tạo spec (Claude tự viết / Discuss first / dán spec có sẵn)
-→ chọn chiến lược (Single / Fallback / Best of 2) → **Start task**. Theo dõi trực tiếp ở tab Activity, duyệt spec,
-xem diff, review, token. Khi Approved: **Squash-merge into current branch**.
+Select **New task** and describe the change. Choose **Claude writes it**, **Discuss first**,
+or **I have a spec**. Select an implementation strategy, then click **Start task**.
+Follow progress in **Activity** and inspect the spec, diff, review, and token usage.
+After approval, select **Squash-merge into current branch** to apply the change.
 
-Terminal (cùng engine với dashboard):
+**Single** uses one implementer. **Fallback** switches to the second implementer when the
+first hits a quota or rate limit. **Best of 2** runs both in parallel and has Claude select
+a candidate. The two-implementer strategies require both CLIs.
+
+The CLI uses the same workflow. Pick the implementer you installed, using
+`--impl gemini` for Gemini CLI or `--impl opencode` for OpenCode.
 
 ```bash
-ai-task run "thêm retry exponential backoff cho src/api/client.ts" --mode fallback
-ai-task run --mode best-of-2 --impl gemini --secondary opencode "…"
+ai-task run --mode single --impl opencode "Add exponential backoff to the API client"
 ai-task list
-ai-task show "$TASK_ID"
-ai-task approve "$TASK_ID"
-ai-task merge "$TASK_ID"
 ```
 
-Gán `TASK_ID` bằng ID từ `ai-task list`. `fallback` và `best-of-2` cần cả hai implementer.
-Nếu chỉ dùng OpenCode, chọn OpenCode trong Settings hoặc chạy `ai-task run --impl opencode "…"`.
+Copy a task ID from `ai-task list` and assign it to `TASK_ID`. Then use
+`ai-task show "$TASK_ID"` to inspect it, `ai-task approve "$TASK_ID"` when it is waiting
+for spec approval, or `ai-task merge "$TASK_ID"` once the implementation is approved.
+Run `ai-task help` for more commands and options.
 
-Thảo luận spec với Claude trong terminal: `ai-arch` rồi `/delegate <yêu cầu>` (Claude bị chặn sửa code ngoài `.ai/`).
+To write a spec interactively, start Claude Code with `ai-arch` and enter
+`/delegate <request>`. The Architect hook restricts file edits made through Claude's
+editing tools to `.ai/`. You can pass the resulting spec to `ai-task run --spec` or paste
+it into the dashboard.
 
-## Cấu hình
+## Configuration
 
-- Toàn máy: trang **Settings** hoặc `~/.ai-kit/config.json`. Prompt tuỳ chỉnh: `~/.ai-kit/prompts/`.
-- Từng repo: `.ai-kit.json` ở gốc repo, ví dụ:
+Use **Settings** in the dashboard or edit `~/.ai-kit/config.json` for global defaults.
+Specs and reviews use English by default. Change **Spec and review language** or set
+`outputLanguage` to use another language. Put custom prompts in `~/.ai-kit/prompts/`.
+
+Add `.ai-kit.json` at the root of a target repository to set its checks and defaults.
+For example, a TypeScript project could use the following configuration.
 
 ```json
 {
-  "gates": { "setup": "npm ci", "lint": "npm run lint", "typecheck": "npx tsc --noEmit", "test": "npm test -- --watchAll=false" },
-  "mode": "fallback",
+  "gates": {
+    "setup": "npm ci",
+    "lint": "npm run lint",
+    "typecheck": "npx tsc --noEmit",
+    "test": "npm test"
+  },
   "protectedGlobs": ["tests/*", "*.test.*", "*.spec.*"]
 }
 ```
 
-`node_modules`, `.venv`, `venv` (nếu bị git ignore) được symlink vào worktree để gate chạy được; nếu không đủ, đặt `gates.setup`.
+Relay can symlink Git-ignored dependency directories such as `node_modules`, `.venv`,
+and `venv` into a worktree. Use `gates.setup` when the worktree needs its own setup.
 
-## Bảo mật
+## Local access and task data
 
-Dashboard chỉ nghe trên `127.0.0.1`, cần link có token mới (in ra mỗi lần chạy `ai-task ui`), chặn request khác origin
-và DNS rebinding. Mặc định implementer chỉ được sửa file (`auto_edit` / `safe`). Chế độ cho phép chạy lệnh chỉ nên dùng
-trong container hoặc VM.
+The dashboard listens on `127.0.0.1` and prints a new access link each time it starts.
+Keep that link private. The server checks request hosts and rejects cross-origin writes.
+Relay uses Gemini's `auto_edit` and OpenCode's `safe` permission modes by default. Use
+the option that allows implementers to run commands only inside a container or VM.
 
-## Dữ liệu
+Each task saves its spec, prompts, logs, diffs, reviews, and event history under
+`<repo>/.ai/tasks/<ID>/`. Relay adds `.ai/` to that repository's `.git/info/exclude`.
 
-Mọi thứ của một task nằm trong `<repo>/.ai/tasks/<ID>/` (spec, prompt từng vòng, log agent, log gate, diff, review,
-`events.jsonl`). Relay thêm `.ai/` vào `.git/info/exclude` của repo chạy task.
+## Run the tests
 
-## Test
+The end-to-end and dashboard API tests use fake agent CLIs.
 
 ```bash
 npm test
 node test/server.test.js
 ```
 
-## Gỡ cài đặt
+## Uninstall
 
-`./uninstall.sh`
+Run `./uninstall.sh` from this repository. The script asks whether to remove your Relay
+settings and custom prompts. Task history stays in each repository.
+
+## License
+
+MIT. See [LICENSE](LICENSE).

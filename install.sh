@@ -6,7 +6,7 @@ KIT_HOME="${AI_KIT_HOME:-$HOME/.ai-kit}"
 APP="$KIT_HOME/app"
 BIN="${AI_KIT_BIN:-$HOME/.local/bin}"
 
-command -v node >/dev/null 2>&1 || { echo "✖ Node.js 18+ is required (it is also required by Gemini CLI)."; exit 1; }
+command -v node >/dev/null 2>&1 || { echo "✖ Relay requires Node.js 18+."; exit 1; }
 major=$(node -p 'process.versions.node.split(".")[0]'); [ "$major" -ge 18 ] || { echo "✖ Node.js 18+ required, found $(node -v)"; exit 1; }
 command -v git >/dev/null 2>&1 || { echo "✖ git is required."; exit 1; }
 
